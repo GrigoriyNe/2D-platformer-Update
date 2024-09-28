@@ -7,3 +7,4 @@ public static class PlayerAnimatorData
         public static readonly int IsAtacked = Animator.StringToHash(nameof(IsAtacked));
     }
 }
+

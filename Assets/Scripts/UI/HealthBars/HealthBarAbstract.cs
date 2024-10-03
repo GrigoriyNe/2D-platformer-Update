@@ -32,9 +32,6 @@ public abstract class HealthBarAbstract : MonoBehaviour
 
     private void ChandgedHealthValue(float healthValue)
     {
-        if (healthValue == 0)
-            gameObject.SetActive(false);
-
         int healthForView = Convert.ToInt32(_health.Value);
         _text.text = (healthForView.ToString());
         ChangeSlider(healthValue);

@@ -5,6 +5,7 @@ public class AnimationDirect : MonoBehaviour
 {
     private const string States = nameof(States);
     private const string IsAtacked = nameof(IsAtacked);
+    private const string IsHeal = nameof(IsHeal);
     private const int StateOfIdle = 0;
     private const int StateOfWalk = 1;
     private const int StateOfRun = 2;
@@ -15,13 +16,15 @@ public class AnimationDirect : MonoBehaviour
     [SerializeField] private InputReader _inputReader;
 
     private bool _isAtacked;
+    private bool _isHeal;
     private bool _isRunning = false;
     private int _delayTakeDamageAnimation = 1;
 
     private void OnEnable()
     {
         _health.Changed += GetTakeDamageAnimation;
-        _inputReader.IsAtack += GetAtttackAnimation;
+        _health.ChangedRestore += GetHealAnimation;
+        _inputReader.IsAtack += GetAtackAnimation;
         _inputReader.IsRunning += GetRunAnimation;
         _inputReader.Direction += GetWalkAnimation;
     }
@@ -29,12 +32,13 @@ public class AnimationDirect : MonoBehaviour
     private void OnDisable()
     {
         _health.Changed -= GetTakeDamageAnimation;
-        _inputReader.IsAtack -= GetAtttackAnimation;
+        _health.ChangedRestore -= GetHealAnimation;
+        _inputReader.IsAtack -= GetAtackAnimation;
         _inputReader.IsRunning -= GetRunAnimation;
         _inputReader.Direction -= GetWalkAnimation;
     }
 
-    private void GetAtttackAnimation(bool isAtack)
+    private void GetAtackAnimation(bool isAtack)
     {
         if (isAtack)
             _animator.SetInteger(States, StateOfAttack);
@@ -70,6 +74,13 @@ public class AnimationDirect : MonoBehaviour
         StartCoroutine(WaitDamageAnimation());
     }
 
+    private void GetHealAnimation(float health)
+    {
+        _isHeal = true;
+        _animator.SetBool(PlayerAnimatorData.Params.IsHeal, _isHeal);
+        StartCoroutine(WaitHealAnimation());
+    }
+
     private IEnumerator WaitDamageAnimation()
     {
         var wait = new WaitForSecondsRealtime(_delayTakeDamageAnimation);
@@ -78,5 +89,15 @@ public class AnimationDirect : MonoBehaviour
 
         _isAtacked = false;
         _animator.SetBool(PlayerAnimatorData.Params.IsAtacked, _isAtacked);
+    }
+
+    private IEnumerator WaitHealAnimation()
+    {
+        var wait = new WaitForSecondsRealtime(_delayTakeDamageAnimation);
+
+        yield return wait;
+
+        _isHeal = false;
+        _animator.SetBool(PlayerAnimatorData.Params.IsHeal, _isHeal);
     }
 }

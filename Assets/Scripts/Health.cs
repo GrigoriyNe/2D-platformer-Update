@@ -3,35 +3,28 @@ using UnityEngine.Events;
 
 public class Health : MonoBehaviour
 {
-    private float _max = 100;
     private float _min = 0;
 
-    public float Value { get; private set; }
-
     public event UnityAction<float> Changed;
+    public event UnityAction<float> ChangedRestore;
+
+    public float Max { get; private set; } = 100;
+    public float Value { get; private set; }
 
     private void Awake()
     {
-        Value = _max;
+        Value = Max;
     }
 
     public void TakeDamage(float damage)
     {
-        Value -= Mathf.Clamp(damage, _min, _max);
+        Value = Mathf.Clamp(Value - damage, _min, Max);
         Changed?.Invoke(Value);
     }
 
     public void RestoreHeal(float heal)
     {
-        if (Value + heal > _max)
-        {
-            Value = _max;
-            Debug.Log("Текущее здоровье максимально: " + Value);
-        }
-        else
-        {
-            Value += Mathf.Clamp(heal, _min, _max);
-            Debug.Log("Полненно здоровье. Текущее: " + Value);
-        }
+        Value = Mathf.Clamp(Value + heal, _min, Max);
+        ChangedRestore?.Invoke(Value);
     }
 }

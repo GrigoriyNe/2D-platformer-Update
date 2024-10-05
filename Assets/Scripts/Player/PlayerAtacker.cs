@@ -29,8 +29,7 @@ public class PlayerAtacker : MonoBehaviour
 
                 if (enemy != null)
                 {
-                    Health healthEnemy = enemy.GetComponent<Health>();
-                    healthEnemy.TakeDamage(_damage * Time.deltaTime);
+                    enemy.Health.TakeDamage(_damage * Time.deltaTime);
                 }
             }
         }

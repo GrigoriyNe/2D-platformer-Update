@@ -5,7 +5,7 @@ using UnityEngine;
     typeof(InputReader))]
 public class PlayerMover : MonoBehaviour
 {
-    private readonly Vector2 force = new Vector2(0, 50);
+    private readonly Vector2 Force = new Vector2(0, 50);
 
     private Rigidbody2D _rigidbody;
     private InputReader _inputReader;
@@ -38,7 +38,7 @@ public class PlayerMover : MonoBehaviour
         TryGround();
 
         if (_isGround && _isJumpPressed)
-            _rigidbody.AddForce(force);
+            _rigidbody.AddForce(Force);
     }
 
     private void Move(Vector2 directionInput)

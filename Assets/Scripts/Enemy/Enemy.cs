@@ -8,6 +8,7 @@ public class Enemy : MonoBehaviour
     private int _delayDeath = 2;
 
     public bool IsAlive => _health.Value > 0;
+    public Health Health => _health;
 
     private void Awake()
     {

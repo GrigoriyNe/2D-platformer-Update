@@ -10,8 +10,11 @@ public class EnemyVision : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        _isPlayerSee = true;
-        _target = collision.transform.position;
+        if (collision.TryGetComponent(out Player _))
+        {
+            _isPlayerSee = true;
+            _target = collision.transform.position;
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)

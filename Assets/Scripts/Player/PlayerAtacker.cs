@@ -3,6 +3,7 @@ using UnityEngine;
 public class PlayerAtacker : MonoBehaviour
 {
     [SerializeField] private InputReader _inputReader;
+    [SerializeField] private LayerMask maskEnemy;
 
     private float _damage = 50;
 
@@ -21,7 +22,7 @@ public class PlayerAtacker : MonoBehaviour
         if (isAttack)
         {
             float radius = 1;
-            Collider2D[] collisions2D = Physics2D.OverlapCircleAll(transform.position, radius);
+            Collider2D[] collisions2D = Physics2D.OverlapCircleAll(transform.position, radius, maskEnemy);
 
             foreach (Collider2D collider in collisions2D)
             {

@@ -6,7 +6,9 @@ public class EnemyAtacker : MonoBehaviour
     [SerializeField] private EnemyAnimationDirect _animationDirect;
     [SerializeField] private Health _health;
 
-    private float _damage = 5;
+    private float _damage = 5f;
+    private float _delayAnimation = 1f;
+    private float _delayAtack = 0.1f;
     private bool _isPunching = false;
 
     public void Update()
@@ -18,23 +20,25 @@ public class EnemyAtacker : MonoBehaviour
     {
         if (_isPunching && _health.Value > 0)
         {
-            Player enemy = collision2D.gameObject.GetComponent<Player>();
-            Health healthEnemy = enemy.GetComponent<Health>();
+            Player player = collision2D.gameObject.GetComponent<Player>();
 
-            if (enemy != null)
+            if (player != null)
             {
-                _animationDirect.SetAnimationAtack(_isPunching);
-                healthEnemy.TakeDamage(_damage * Time.deltaTime);
+                StartCoroutine(AtackWhithDelay(player));
             }
-
-            StartCoroutine(WaitAtackAnimation());
         }
     }
 
-    private IEnumerator WaitAtackAnimation()
+    private IEnumerator AtackWhithDelay(Player player)
     {
+        var waitAtack = new WaitForSeconds(_delayAtack);
+        var wait = new WaitForSeconds(_delayAnimation);
 
-        var wait = new WaitForSeconds(1);
+        yield return waitAtack;
+
+        _animationDirect.SetAnimationAtack(_isPunching);
+        player.Health.TakeDamage(_damage * Time.deltaTime);
+
         yield return wait;
 
         _isPunching = false;

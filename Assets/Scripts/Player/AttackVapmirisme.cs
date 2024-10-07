@@ -12,21 +12,53 @@ public class AttackVapmirisme : MonoBehaviour
     [SerializeField] private float _smoothValue;
 
     private int _cooldown = 3;
-    private float _radius = 2;
-    public int TimeAtack { get; private set; } = 6;
+    private Enemy _target;
+    private WaitForSecondsRealtime _waitCooldown;
+
     public Coroutine Coroutine { get; private set; } = null;
+    public int TimeAtack { get; private set; } = 6;
 
     public event UnityAction<bool> IsSpesialAtackIsRuning;
 
-    private void OnEnable()
+    private void Awake()
     {
         _sprite.gameObject.SetActive(false);
+        _waitCooldown = new WaitForSecondsRealtime(_cooldown);
+        _target = null;
+    }
+
+    private void OnEnable()
+    {
         _inputReader.IsSpecialAtack += Atack;
     }
 
     private void OnDisable()
     {
         _inputReader.IsSpecialAtack -= Atack;
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.gameObject.TryGetComponent(out Enemy enemy))
+        {
+            if (_target == null)
+            {
+                _target = enemy;
+            }
+            else
+            {
+                if (Vector2.Distance(_player.transform.position, enemy.transform.position)
+                    < Vector2.Distance(_player.transform.position, _target.transform.position))
+                {
+                    _target = enemy;
+                }
+            }
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        _target = null;
     }
 
     private void Atack(bool isAtack)
@@ -41,32 +73,32 @@ public class AttackVapmirisme : MonoBehaviour
     private IEnumerator SpesialAtackWithDelay()
     {
         float timer = 0;
-        var waitCooldown = new WaitForSecondsRealtime(_cooldown);
 
         _sprite.gameObject.SetActive(true);
 
         while (TimeAtack >= timer)
         {
-            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _radius, maskEnemy);
-
-            foreach (Collider2D hit in hits)
+            if (_target != null)
             {
-                if (hit.TryGetComponent(out Enemy enemy))
+                if (_target.Health.Value < _damage)
                 {
-                    enemy.Health.TakeDamage(Mathf.MoveTowards(0f, _damage, _smoothValue * Time.deltaTime));
-                    _player.Health.RestoreHeal(Mathf.MoveTowards(0f, _damage, _smoothValue * Time.deltaTime));
+                    _player.Health.RestoreHeal(_target.Health.Value);
                 }
-            }
-            yield return null;
+                else
+                {
+                    _player.Health.RestoreHeal(_damage);
+                }
 
-            timer += Time.deltaTime;
+                _target.Health.TakeDamage(_damage);
+            }
+
+            yield return timer += Time.deltaTime;
         }
 
         _sprite.gameObject.SetActive(false);
 
-        yield return waitCooldown;
+        yield return _waitCooldown;
 
         Coroutine = null;
     }
 }
-

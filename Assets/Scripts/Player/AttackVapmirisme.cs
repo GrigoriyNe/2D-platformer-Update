@@ -1,83 +1,102 @@
+using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class AttackVapmirisme : MonoBehaviour
 {
-    [SerializeField] private InputReader _inputReader;
+    [SerializeField] private InputReader _input;
     [SerializeField] private Player _player;
-    [SerializeField] private SpriteRenderer _sprite;
-    [SerializeField] private LayerMask maskEnemy;
+    [SerializeField] private LayerMask _maskEnemy;
     [SerializeField] private float _damage;
-    [SerializeField] private float _smoothValue;
 
-    private int _cooldown = 3;
-    private Enemy _target;
     private WaitForSecondsRealtime _waitCooldown;
+    private WaitForSecondsRealtime _delayOverlap;
+    private Coroutine _coroutineOverlapDelay;
+    private Coroutine _coroutineWaitCooldown;
+    private Enemy _target;
+    private Coroutine _coroutineAttack  = null;
 
-    public Coroutine Coroutine { get; private set; } = null;
-    public int TimeAtack { get; private set; } = 6;
+    private int _quantityTargetOfAttack = 1;
+    private int _radius = 2;
+    private int _cooldown = 3;
+    private float _timer = 0;
+    private float _maxDistanse = 3f;
+    private float _delayOverlapValue = 0.5f;
 
-    public event UnityAction<bool> IsSpesialAtackIsRuning;
+    public event Action<float> IsSpesialAttackIsRuning;
+    public event Action<float> IsCooldownChange;
+
+    public int TimeAttack { get; private set; } = 6;
 
     private void Awake()
     {
-        _sprite.gameObject.SetActive(false);
+        _delayOverlap = new WaitForSecondsRealtime(_delayOverlapValue);
         _waitCooldown = new WaitForSecondsRealtime(_cooldown);
         _target = null;
     }
 
     private void OnEnable()
     {
-        _inputReader.IsSpecialAtack += Atack;
+        _input.IsSpecialAttack += Attack;
     }
 
     private void OnDisable()
     {
-        _inputReader.IsSpecialAtack -= Atack;
+        _input.IsSpecialAttack -= Attack;
     }
 
-    private void OnTriggerStay2D(Collider2D collision)
+    private void Attack()
     {
-        if (collision.gameObject.TryGetComponent(out Enemy enemy))
+        if (_coroutineAttack == null)
+            _coroutineAttack = StartCoroutine(SpesialAttackWithDelay());
+    }
+
+    private float SqrDistance(Vector3 start, Vector3 end)
+    {
+        return (end - start).sqrMagnitude;
+    }
+
+    private IEnumerator TryFindTarget()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _radius, _maskEnemy);
+
+        foreach (Collider2D hit in hits)
         {
-            if (_target == null)
+            if (hit.TryGetComponent(out Enemy enemy))
             {
-                _target = enemy;
-            }
-            else
-            {
-                if (Vector2.Distance(_player.transform.position, enemy.transform.position)
-                    < Vector2.Distance(_player.transform.position, _target.transform.position))
+                if (_target == null)
                 {
                     _target = enemy;
                 }
+                else
+                {
+                    if (SqrDistance(_player.transform.position, _target.transform.position) > _maxDistanse)
+                    {
+                        _target = null;
+                    }
+
+                    if (hits.Length > _quantityTargetOfAttack)
+                    {
+                        if (SqrDistance(_player.transform.position, enemy.transform.position)
+                        < SqrDistance(_player.transform.position, _target.transform.position))
+                        {
+                            _target = enemy;
+                        }
+                    }
+                }
             }
         }
+
+        yield return _delayOverlap;
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private IEnumerator SpesialAttackWithDelay()
     {
-        _target = null;
-    }
-
-    private void Atack(bool isAtack)
-    {
-        if (isAtack && Coroutine == null)
+        while (TimeAttack > _timer)
         {
-            Coroutine = StartCoroutine(SpesialAtackWithDelay());
-            IsSpesialAtackIsRuning?.Invoke(true);
-        }
-    }
+            _coroutineOverlapDelay = StartCoroutine(TryFindTarget());
+            IsSpesialAttackIsRuning?.Invoke(_timer);
 
-    private IEnumerator SpesialAtackWithDelay()
-    {
-        float timer = 0;
-
-        _sprite.gameObject.SetActive(true);
-
-        while (TimeAtack >= timer)
-        {
             if (_target != null)
             {
                 if (_target.Health.Value < _damage)
@@ -92,13 +111,26 @@ public class AttackVapmirisme : MonoBehaviour
                 _target.Health.TakeDamage(_damage);
             }
 
-            yield return timer += Time.deltaTime;
+            yield return null;
+
+            _timer += Time.deltaTime;
         }
 
-        _sprite.gameObject.SetActive(false);
+        _coroutineOverlapDelay = null;
+        _target = null;
+        _coroutineWaitCooldown = StartCoroutine(WaitCooldown());
+    }
 
-        yield return _waitCooldown;
+    private IEnumerator WaitCooldown()
+    {
+        while (_timer > 0)
+        {
+            _timer -= (TimeAttack / _cooldown) * Time.deltaTime;
+            IsCooldownChange?.Invoke(_timer);
+            yield return null;
+        }
 
-        Coroutine = null;
+        _coroutineAttack = null;
+        _waitCooldown = null;
     }
 }

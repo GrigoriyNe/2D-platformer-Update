@@ -26,7 +26,7 @@ public class PlayerAtacker : MonoBehaviour
 
             foreach (Collider2D collider in collisions2D)
             {
-                Enemy enemy = collider.gameObject.GetComponent<Enemy>();
+                collider.gameObject.TryGetComponent(out Enemy enemy);
 
                 if (enemy != null)
                 {

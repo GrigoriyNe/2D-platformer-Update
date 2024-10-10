@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.Events;
+using System;
 
 public class InputReader : MonoBehaviour
 {
@@ -10,11 +11,11 @@ public class InputReader : MonoBehaviour
     private const int ValueOfLeftClickMouse = 0;
     private const int ValueOfRigthClickMouse = 1;
     
-    public event UnityAction<Vector2> Direction;
-    public event UnityAction<bool> IsRunning;
-    public event UnityAction<bool> IsJumpPressed;
-    public event UnityAction<bool> IsAtack;
-    public event UnityAction<bool> IsSpecialAtack;
+    public event Action<Vector2> Direction;
+    public event Action<bool> IsRunning;
+    public event Action<bool> IsJumpPressed;
+    public event Action<bool> IsAtack;
+    public event Action IsSpecialAttack;
 
     private Vector2 _startVector = Vector2.zero;
     private float _delayAttack = 0.1f;
@@ -62,10 +63,8 @@ public class InputReader : MonoBehaviour
 
     private void TrySpecialAtack()
     {
-        IsSpecialAtack?.Invoke(false);
-
         if (Input.GetMouseButton(ValueOfRigthClickMouse))
-            IsSpecialAtack?.Invoke(true);
+            IsSpecialAttack?.Invoke();
     }
 
     private IEnumerator AttackWihtDelay()

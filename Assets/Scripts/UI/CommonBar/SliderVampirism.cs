@@ -10,13 +10,11 @@ public class SliderVampirism : MonoBehaviour
     private void OnEnable()
     {
         _vapmirisme.IsSpesialAttackIsRuning += ValueChanged;
-        _vapmirisme.IsCooldownChange += ValueChanged;
     }
 
     private void OnDisable()
     {
         _vapmirisme.IsSpesialAttackIsRuning -= ValueChanged;
-        _vapmirisme.IsCooldownChange -= ValueChanged;
     }
 
     private void Awake()

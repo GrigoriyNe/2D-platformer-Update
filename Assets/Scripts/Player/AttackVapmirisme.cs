@@ -16,7 +16,6 @@ public class AttackVapmirisme : MonoBehaviour
     private Enemy _target;
     private Coroutine _coroutineAttack  = null;
 
-    private int _quantityTargetOfAttack = 1;
     private int _radius = 2;
     private int _cooldown = 3;
     private float _timer = 0;
@@ -24,7 +23,6 @@ public class AttackVapmirisme : MonoBehaviour
     private float _delayOverlapValue = 0.5f;
 
     public event Action<float> IsSpesialAttackIsRuning;
-    public event Action<float> IsCooldownChange;
 
     public int TimeAttack { get; private set; } = 6;
 
@@ -70,20 +68,17 @@ public class AttackVapmirisme : MonoBehaviour
                 }
                 else
                 {
-                    if (SqrDistance(_player.transform.position, _target.transform.position) > _maxDistanse)
+                    if (SqrDistance(_player.transform.position, enemy.transform.position)
+                    < SqrDistance(_player.transform.position, _target.transform.position))
                     {
-                        _target = null;
+                        _target = enemy;
                     }
 
-                    if (hits.Length > _quantityTargetOfAttack)
-                    {
-                        if (SqrDistance(_player.transform.position, enemy.transform.position)
-                        < SqrDistance(_player.transform.position, _target.transform.position))
-                        {
-                            _target = enemy;
-                        }
-                    }
+                    hits = null;
                 }
+
+                if (SqrDistance(_player.transform.position, _target.transform.position) > _maxDistanse)
+                    _target = null;
             }
         }
 
@@ -92,7 +87,7 @@ public class AttackVapmirisme : MonoBehaviour
 
     private IEnumerator SpesialAttackWithDelay()
     {
-        while (TimeAttack > _timer)
+        while (TimeAttack >= _timer)
         {
             _coroutineOverlapDelay = StartCoroutine(TryFindTarget());
             IsSpesialAttackIsRuning?.Invoke(_timer);
@@ -126,7 +121,8 @@ public class AttackVapmirisme : MonoBehaviour
         while (_timer > 0)
         {
             _timer -= (TimeAttack / _cooldown) * Time.deltaTime;
-            IsCooldownChange?.Invoke(_timer);
+            IsSpesialAttackIsRuning?.Invoke(_timer);
+
             yield return null;
         }
 

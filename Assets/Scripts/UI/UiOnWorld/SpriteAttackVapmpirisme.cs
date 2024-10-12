@@ -8,13 +8,16 @@ public class SpriteAttackVapmpirisme : MonoBehaviour
     private SpriteRenderer _render;
     private Color _enableColor;
     private Color _disableColor;
+    private Color _coldownColor;
     private int _dividerAlphaColorForView = 4;
-    private float _earlierOffValue = 0.1f;
+    private float _earlierOffValue = 1f;
+
 
     private void Awake()
     {
         _render = GetComponent<SpriteRenderer>();
         _disableColor = Color.clear;
+        _coldownColor = Color.blue;
         _enableColor = Color.red;
         _render.color = _disableColor;
     }
@@ -33,9 +36,23 @@ public class SpriteAttackVapmpirisme : MonoBehaviour
     {
         _enableColor.a = (timer / _attack.TimeAttack / _dividerAlphaColorForView);
 
-        if (timer > 0 && timer < _attack.TimeAttack - _earlierOffValue)
+        if (timer <= 0)
+        {
+            _enableColor = Color.red;
+            return;
+        }
+
+        if (timer < _attack.TimeAttack - _earlierOffValue)
+        {
             _render.color = _enableColor;
+        }
+        else if (timer > _attack.TimeAttack - _earlierOffValue)
+        {
+            _enableColor = _coldownColor;
+        }
         else
+        {
             _render.color = _disableColor;
+        }
     }
 }
